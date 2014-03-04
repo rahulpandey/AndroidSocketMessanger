@@ -11,15 +11,19 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
     IRemoteService mService = null;
     ArrayAdapter<String> arrayAdapter;
     private EditText mEditText;
+    private boolean mIsBound=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +33,6 @@ public class MainActivity extends ActionBarActivity {
         mEditText = (EditText) findViewById(R.id.editText);
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         listView.setAdapter(arrayAdapter);
-
-
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -41,7 +43,6 @@ public class MainActivity extends ActionBarActivity {
             // service through an IDL interface, so get a client-side
             // representation of that from the raw service object.
             mService = IRemoteService.Stub.asInterface(service);
-
 
             // We want to monitor the service for as long as we are
             // connected to it.
@@ -61,6 +62,7 @@ public class MainActivity extends ActionBarActivity {
         public void onServiceDisconnected(ComponentName className) {
             // This is called when the connection with the service has been
             // unexpectedly disconnected -- that is, its process crashed.
+            Toast.makeText(MainActivity.this,"Unbind done",Toast.LENGTH_SHORT).show();
             mService = null;
 
 
@@ -102,7 +104,11 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        bindService(new Intent(this, MyService.class), mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void doBinding() {
+        bindService(new Intent(this,MyService.class),  mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
     }
 
     private static final int BUMP_MSG = 1;
@@ -125,8 +131,47 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onStop() {
-        unbindService(mConnection);
+
         super.onStop();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+    public void doUnbind(){
+        if (mIsBound) {
+            // If we have received the service, and hence registered with
+            // it, then now is the time to unregister.
+            if (mService != null) {
+                try {
+                    mService.stopServer();
+                    mService.unregisterCallBack(mCallback);
+                } catch (RemoteException e) {
+                    // There is nothing special we need to do if the service
+                    // has crashed.
+                }
+            }
+            // Detach our existing connection.
+
+            unbindService(mConnection);
+            mIsBound = false;
+
+        }
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId()==R.id.action_start){
+            doBinding();
+            return true;
+        }
+        if(item.getItemId()==R.id.action_stop){
+            doUnbind();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
 

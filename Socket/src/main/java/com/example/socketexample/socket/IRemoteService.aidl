@@ -5,5 +5,6 @@ interface IRemoteService{
     void unregisterCallBack(IRemoteServiceCallBack cb);
     void sendMessage(String message);
     void startServer();
+    void stopServer();
 
 }

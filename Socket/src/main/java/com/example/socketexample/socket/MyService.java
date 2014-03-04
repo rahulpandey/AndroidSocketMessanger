@@ -38,7 +38,7 @@ public class MyService extends Service {
         // While this service is running, it will continually increment a
         // number.  Send the first message that is used to perform the
         // increment.
-        //   mHandler.sendEmptyMessage(REPORT_MSG);
+       // mHandler.sendEmptyMessage(REPORT_MSG);
     }
 
     /**
@@ -68,6 +68,11 @@ public class MyService extends Service {
                     startRunning();
                 }
             }).start();
+        }
+
+        @Override
+        public void stopServer() throws RemoteException {
+            sendMessageToUser("END");
         }
     };
 
