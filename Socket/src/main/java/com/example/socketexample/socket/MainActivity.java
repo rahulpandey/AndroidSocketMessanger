@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -24,15 +25,32 @@ public class MainActivity extends ActionBarActivity {
     ArrayAdapter<String> arrayAdapter;
     private EditText mEditText;
     private boolean mIsBound=false;
-
+    public static final int BIND_BROADCAST=1;
+    public static final int UNBIND_BROADCAST=2;
+    public static final String BIND_KEY="bind";
+    public static final String UNBIND_KEY="unbind";
+    LocalBroadcastManager localBroadcastManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ListView listView = (ListView) findViewById(R.id.left_drawer);
         mEditText = (EditText) findViewById(R.id.editText);
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        arrayAdapter = new ArrayAdapter<String>(this,R.layout.list_item,android.R.id.text1);
         listView.setAdapter(arrayAdapter);
+        localBroadcastManager= LocalBroadcastManager.getInstance(this);
+        unBindBroadCast();
+    }
+
+    private void unBindBroadCast() {
+        Intent unbindIntent=new Intent(this,BindBroadCastReceiver.class);
+        unbindIntent.putExtra(UNBIND_KEY,UNBIND_BROADCAST);
+        sendBroadcast(unbindIntent);
+    }
+    private void bindBroadCast() {
+        Intent bindIntent=new Intent(this,BindBroadCastReceiver.class);
+        bindIntent.putExtra(BIND_KEY,BIND_BROADCAST);
+        sendBroadcast(bindIntent);
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -43,7 +61,6 @@ public class MainActivity extends ActionBarActivity {
             // service through an IDL interface, so get a client-side
             // representation of that from the raw service object.
             mService = IRemoteService.Stub.asInterface(service);
-
             // We want to monitor the service for as long as we are
             // connected to it.
             try {
@@ -70,9 +87,7 @@ public class MainActivity extends ActionBarActivity {
     };
 
     public void sayHello(View v) {
-
         // Create and send a message to the service, using a supported 'what' value
-
         try {
             mService.sendMessage(mEditText.getText().toString());
         } catch (RemoteException e) {
@@ -131,7 +146,8 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onStop() {
-
+        doUnbind();
+        bindBroadCast();
         super.onStop();
     }
 
@@ -166,7 +182,7 @@ public class MainActivity extends ActionBarActivity {
             doBinding();
             return true;
         }
-        if(item.getItemId()==R.id.action_stop){
+        if(item.getItemId()== R.id.action_stop){
             doUnbind();
             return true;
         }

@@ -52,7 +52,7 @@ public class MyService extends Service {
 
         @Override
         public void unregisterCallBack(IRemoteServiceCallBack cb) throws RemoteException {
-            if (cb != null) mCallbacks.register(cb);
+            if (cb != null) mCallbacks.unregister(cb);
         }
 
         @Override
@@ -93,7 +93,7 @@ public class MyService extends Service {
 
     //connect to server
     private void connectToServer() throws IOException {
-        showMessage("Attempting connection... \n");
+        showMessage("Attempting connection...");
         connection = new Socket(InetAddress.getByName(serverIP), 6789);
         showMessage("Connected to: " + connection.getInetAddress().getHostName());
     }
@@ -103,7 +103,7 @@ public class MyService extends Service {
         output = new ObjectOutputStream(connection.getOutputStream());
         output.flush();
         input = new ObjectInputStream(connection.getInputStream());
-        showMessage("\n Dude your streams are now good to go! \n");
+        showMessage("Dude your streams are now good to go!");
     }
 
     //while chatting with server
@@ -111,9 +111,9 @@ public class MyService extends Service {
         do {
             try {
                 message = (String) input.readObject();
-                showMessage("\n" + message);
+                showMessage(message);
             } catch (ClassNotFoundException classNotfoundException) {
-                showMessage("\n I dont know that object type");
+                showMessage("I dont know that object type");
             }
         } while (!message.equals("SERVER - END"));
     }
@@ -136,7 +136,7 @@ public class MyService extends Service {
         try {
             output.writeObject("CLIENT - " + message);
             output.flush();
-            showMessage("\nCLIENT - " + message);
+            showMessage("CLIENT - " + message);
         } catch (IOException ioException) {
 
         }
